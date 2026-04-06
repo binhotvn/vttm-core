@@ -1,18 +1,33 @@
 'use client';
 
-import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Layout } from 'antd';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
 
-const { Content } = Layout;
+const BREADCRUMB_MAP: Record<string, string> = {
+  '/':          'Tổng quan',
+  '/orders':    'Đơn hàng',
+  '/shipments': 'Vận đơn',
+  '/batches':   'Lô hàng',
+  '/drivers':   'Tài xế',
+  '/hubs':      'Kho',
+  '/pickups':   'Lấy hàng',
+  '/cod':       'Đối soát COD',
+  '/users':     'Người dùng',
+  '/settings':  'Cài đặt',
+  '/returns':   'Hoàn hàng',
+};
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const locale = pathname.split('/')[1] || 'vi';
+  const cleanPath = pathname.replace(/^\/(vi|en)/, '') || '/';
+
+  // Find matching breadcrumb (supports nested routes like /orders/123)
+  const breadcrumb = BREADCRUMB_MAP[cleanPath]
+    || BREADCRUMB_MAP['/' + cleanPath.split('/').filter(Boolean)[0]]
+    || 'Tổng quan';
 
   const handleLocaleChange = (newLocale: string) => {
     const segments = pathname.split('/');
@@ -21,19 +36,16 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <AdminSidebar collapsed={collapsed} onCollapse={setCollapsed} />
-      <Layout style={{ marginLeft: collapsed ? 72 : 256, transition: 'margin-left 0.2s' }}>
+    <div style={{ minHeight: '100vh', background: '#f8f9fa' }}>
+      <AdminSidebar />
+      <div style={{ marginLeft: 56 }}>
         <AdminHeader
-          collapsed={collapsed}
-          onToggleCollapse={() => setCollapsed(!collapsed)}
           locale={locale}
+          breadcrumb={breadcrumb}
           onLocaleChange={handleLocaleChange}
         />
-        <Content style={{ background: '#f5f5f5', minHeight: 'calc(100vh - 56px)' }}>
-          {children}
-        </Content>
-      </Layout>
-    </Layout>
+        <main>{children}</main>
+      </div>
+    </div>
   );
 }

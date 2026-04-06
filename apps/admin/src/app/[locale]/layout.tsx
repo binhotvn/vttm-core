@@ -30,43 +30,44 @@ export default async function LocaleLayout({
         locale={viVN}
         theme={{
           token: {
-            colorPrimary: '#1677ff',
-            borderRadius: 8,
+            colorPrimary: '#714B67',
+            borderRadius: 6,
             fontFamily: "'Inter', 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif",
+            colorLink: '#714B67',
+            colorLinkHover: '#8B6085',
           },
           components: {
             Table: {
-              headerBg: '#fafafa',
-              headerColor: '#8c8c8c',
+              headerBg: '#f8f9fa',
+              headerColor: '#868e96',
               headerSplitColor: 'transparent',
-              rowHoverBg: '#f5f8ff',
+              rowHoverBg: '#f5f0f4',
               cellPaddingBlock: 12,
               cellPaddingInline: 16,
               headerBorderRadius: 0,
-            },
-            Menu: {
-              darkItemBg: 'transparent',
-              darkItemSelectedBg: 'rgba(255, 255, 255, 0.08)',
-              darkItemHoverBg: 'rgba(255, 255, 255, 0.04)',
-              itemBorderRadius: 8,
-              itemMarginInline: 8,
-              itemHeight: 40,
-              iconSize: 18,
+              borderColor: '#e9ecef',
             },
             Card: {
-              borderRadiusLG: 12,
+              borderRadiusLG: 8,
             },
             Tag: {
-              borderRadiusSM: 12,
+              borderRadiusSM: 20,
+            },
+            Tabs: {
+              inkBarColor: '#714B67',
+              itemActiveColor: '#714B67',
+              itemSelectedColor: '#714B67',
+              itemHoverColor: '#8B6085',
             },
             Button: {
-              controlHeight: 36,
+              controlHeight: 34,
+              borderRadius: 6,
             },
             Input: {
-              controlHeight: 36,
+              controlHeight: 34,
             },
             Select: {
-              controlHeight: 36,
+              controlHeight: 34,
             },
           },
         }}
