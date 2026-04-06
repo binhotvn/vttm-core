@@ -1,0 +1,13 @@
+{
+  "required": "{{field}} is required",
+  "email": "Invalid email address",
+  "minLength": "{{field}} must be at least {{min}} characters",
+  "maxLength": "{{field}} must not exceed {{max}} characters",
+  "min": "{{field}} must be at least {{min}}",
+  "max": "{{field}} must be at most {{max}}",
+  "invalidPhone": "Invalid phone number",
+  "invalidAddress": "Invalid address",
+  "invalidTrackingNumber": "Invalid tracking number",
+  "passwordMismatch": "Passwords do not match",
+  "passwordTooWeak": "Password must be at least 8 characters"
+}

@@ -1,0 +1,60 @@
+{
+  "app": {
+    "title": "VTTM Logistics",
+    "subtitle": "Theo dõi & Quản lý đơn hàng"
+  },
+  "nav": {
+    "dashboard": "Tổng quan",
+    "orders": "Đơn hàng",
+    "shipments": "Vận đơn",
+    "tracking": "Theo dõi",
+    "pickups": "Lấy hàng",
+    "addressBook": "Sổ địa chỉ",
+    "returns": "Hoàn hàng",
+    "billing": "Tài chính",
+    "cod": "Đối soát COD",
+    "settings": "Cài đặt"
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "fullName": "Họ và tên",
+    "phone": "Số điện thoại",
+    "submit": "Đăng nhập",
+    "registerSubmit": "Đăng ký",
+    "forgotPassword": "Quên mật khẩu?",
+    "noAccount": "Chưa có tài khoản?",
+    "hasAccount": "Đã có tài khoản?",
+    "invalidCredentials": "Email hoặc mật khẩu không chính xác"
+  },
+  "tracking": {
+    "title": "Theo dõi đơn hàng",
+    "placeholder": "Nhập mã vận đơn",
+    "submit": "Tra cứu",
+    "notFound": "Không tìm thấy vận đơn"
+  },
+  "dashboard": {
+    "title": "Tổng quan",
+    "recentOrders": "Đơn gần đây",
+    "quickTrack": "Tra cứu nhanh",
+    "inTransit": "Đang vận chuyển",
+    "delivered": "Đã giao",
+    "exceptions": "Sự cố",
+    "pendingCOD": "COD chưa nhận"
+  },
+  "common": {
+    "search": "Tìm kiếm",
+    "create": "Tạo mới",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "loading": "Đang tải...",
+    "noData": "Không có dữ liệu",
+    "language": "Ngôn ngữ",
+    "logout": "Đăng xuất",
+    "profile": "Hồ sơ"
+  }
+}

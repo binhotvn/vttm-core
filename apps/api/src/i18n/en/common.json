@@ -1,0 +1,11 @@
+{
+  "greeting": "Hello",
+  "notFound": "{entity} not found",
+  "created": "{entity} created successfully",
+  "updated": "{entity} updated successfully",
+  "deleted": "{entity} deleted successfully",
+  "forbidden": "You do not have permission to perform this action",
+  "unauthorized": "Please log in",
+  "badRequest": "Bad request",
+  "internalError": "Internal server error"
+}

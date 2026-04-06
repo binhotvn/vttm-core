@@ -1,0 +1,15 @@
+{
+  "notFound": "Không tìm thấy",
+  "unauthorized": "Chưa đăng nhập",
+  "forbidden": "Không có quyền truy cập",
+  "badRequest": "Yêu cầu không hợp lệ",
+  "conflict": "Dữ liệu đã tồn tại",
+  "internal": "Lỗi hệ thống. Vui lòng thử lại sau",
+  "invalidStatusTransition": "Không thể chuyển trạng thái từ {{from}} sang {{to}}",
+  "shipmentNotFound": "Không tìm thấy vận đơn",
+  "orderNotFound": "Không tìm thấy đơn hàng",
+  "driverNotFound": "Không tìm thấy tài xế",
+  "hubNotFound": "Không tìm thấy kho",
+  "batchSealed": "Lô hàng đã được niêm phong",
+  "maxAttemptsReached": "Đã vượt quá số lần giao hàng tối đa"
+}

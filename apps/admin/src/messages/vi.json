@@ -1,0 +1,52 @@
+{
+  "app": {
+    "title": "VTTM Admin",
+    "dashboard": "Tổng quan",
+    "orders": "Đơn hàng",
+    "shipments": "Vận đơn",
+    "batches": "Lô hàng",
+    "drivers": "Tài xế",
+    "hubs": "Kho",
+    "routes": "Tuyến đường",
+    "pickups": "Lấy hàng",
+    "cod": "Đối soát COD",
+    "returns": "Hoàn hàng",
+    "reports": "Báo cáo",
+    "settings": "Cài đặt",
+    "users": "Người dùng",
+    "organizations": "Tổ chức",
+    "exceptions": "Sự cố",
+    "geo": "Địa lý"
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "submit": "Đăng nhập",
+    "forgotPassword": "Quên mật khẩu?",
+    "invalidCredentials": "Email hoặc mật khẩu không chính xác"
+  },
+  "dashboard": {
+    "title": "Tổng quan",
+    "totalOrders": "Tổng đơn hàng",
+    "totalShipments": "Tổng vận đơn",
+    "deliveryRate": "Tỷ lệ giao thành công",
+    "pendingCOD": "COD chưa đối soát",
+    "recentActivity": "Hoạt động gần đây"
+  },
+  "common": {
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "export": "Xuất file",
+    "create": "Tạo mới",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "loading": "Đang tải...",
+    "noData": "Không có dữ liệu",
+    "language": "Ngôn ngữ",
+    "logout": "Đăng xuất",
+    "profile": "Hồ sơ"
+  }
+}

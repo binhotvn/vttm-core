@@ -1,0 +1,11 @@
+{
+  "greeting": "Xin chào",
+  "notFound": "Không tìm thấy {entity}",
+  "created": "Tạo {entity} thành công",
+  "updated": "Cập nhật {entity} thành công",
+  "deleted": "Xóa {entity} thành công",
+  "forbidden": "Không có quyền thực hiện thao tác này",
+  "unauthorized": "Vui lòng đăng nhập",
+  "badRequest": "Yêu cầu không hợp lệ",
+  "internalError": "Lỗi hệ thống"
+}

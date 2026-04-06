@@ -1,0 +1,52 @@
+{
+  "app": {
+    "title": "VTTM Admin",
+    "dashboard": "Dashboard",
+    "orders": "Orders",
+    "shipments": "Shipments",
+    "batches": "Batches",
+    "drivers": "Drivers",
+    "hubs": "Hubs",
+    "routes": "Routes",
+    "pickups": "Pickups",
+    "cod": "COD Reconciliation",
+    "returns": "Returns",
+    "reports": "Reports",
+    "settings": "Settings",
+    "users": "Users",
+    "organizations": "Organizations",
+    "exceptions": "Exceptions",
+    "geo": "Geography"
+  },
+  "auth": {
+    "login": "Login",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign In",
+    "forgotPassword": "Forgot Password?",
+    "invalidCredentials": "Invalid email or password"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalOrders": "Total Orders",
+    "totalShipments": "Total Shipments",
+    "deliveryRate": "Delivery Success Rate",
+    "pendingCOD": "Pending COD",
+    "recentActivity": "Recent Activity"
+  },
+  "common": {
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "create": "Create",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "noData": "No data",
+    "language": "Language",
+    "logout": "Logout",
+    "profile": "Profile"
+  }
+}

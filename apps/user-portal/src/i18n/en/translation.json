@@ -1,0 +1,60 @@
+{
+  "app": {
+    "title": "VTTM Logistics",
+    "subtitle": "Track & Manage Orders"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "orders": "Orders",
+    "shipments": "Shipments",
+    "tracking": "Tracking",
+    "pickups": "Pickups",
+    "addressBook": "Address Book",
+    "returns": "Returns",
+    "billing": "Billing",
+    "cod": "COD Statement",
+    "settings": "Settings"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full Name",
+    "phone": "Phone Number",
+    "submit": "Sign In",
+    "registerSubmit": "Sign Up",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "invalidCredentials": "Invalid email or password"
+  },
+  "tracking": {
+    "title": "Track Shipment",
+    "placeholder": "Enter tracking number",
+    "submit": "Track",
+    "notFound": "Shipment not found"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "recentOrders": "Recent Orders",
+    "quickTrack": "Quick Track",
+    "inTransit": "In Transit",
+    "delivered": "Delivered",
+    "exceptions": "Exceptions",
+    "pendingCOD": "Pending COD"
+  },
+  "common": {
+    "search": "Search",
+    "create": "Create",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "noData": "No data",
+    "language": "Language",
+    "logout": "Logout",
+    "profile": "Profile"
+  }
+}

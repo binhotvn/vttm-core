@@ -1,0 +1,30 @@
+{
+  "name": "vttm",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "packageManager": "yarn@1.22.22",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "local": "./local.sh",
+    "infra:up": "docker compose -f docker-compose.infra.yml up -d",
+    "infra:down": "docker compose -f docker-compose.infra.yml down",
+    "prod:up": "docker compose -f docker-compose.prod.yml up -d --build",
+    "prod:down": "docker compose -f docker-compose.prod.yml down",
+    "docker:up": "docker compose -f docker-compose.infra.yml up -d",
+    "docker:down": "docker compose -f docker-compose.infra.yml down",
+    "db:migrate": "cd apps/api && npx ts-node -r tsconfig-paths/register src/database/run-migrations.ts",
+    "db:seed": "cd apps/api && npx ts-node -r tsconfig-paths/register src/database/seeds/seed.ts"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.0",
+    "typescript": "^5.7.0",
+    "prettier": "^3.4.0"
+  }
+}

@@ -1,0 +1,206 @@
+{
+  "realm": "vttm",
+  "enabled": true,
+  "registrationAllowed": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "defaultSignatureAlgorithm": "RS256",
+  "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "roles": {
+    "realm": [
+      { "name": "SUPER_ADMIN", "description": "Super administrator" },
+      { "name": "ORG_ADMIN", "description": "Organization administrator" },
+      { "name": "DISPATCHER", "description": "Dispatcher" },
+      { "name": "WAREHOUSE", "description": "Warehouse staff" },
+      { "name": "CASHIER", "description": "Cashier" },
+      { "name": "DRIVER", "description": "Delivery driver" },
+      { "name": "CUSTOMER", "description": "Customer / Shipper" }
+    ]
+  },
+  "defaultRoles": ["CUSTOMER"],
+  "clients": [
+    {
+      "clientId": "vttm-api",
+      "name": "VTTM API",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "vttm-api-secret-dev",
+      "bearerOnly": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "defaultClientScopes": ["openid", "profile", "email", "roles"],
+      "protocolMappers": [
+        {
+          "name": "realm-role-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "realm_roles",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "organization-id-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "claim.name": "organizationId",
+            "user.attribute": "organizationId",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "vttm-admin",
+      "name": "VTTM Admin Dashboard",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://localhost:3001/*", "http://admin.vttm.local/*"],
+      "webOrigins": ["http://localhost:3001", "http://admin.vttm.local"],
+      "protocol": "openid-connect",
+      "defaultClientScopes": ["openid", "profile", "email", "roles"],
+      "protocolMappers": [
+        {
+          "name": "realm-role-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "realm_roles",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "organization-id-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "claim.name": "organizationId",
+            "user.attribute": "organizationId",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "vttm-portal",
+      "name": "VTTM Customer Portal",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://localhost:3002/*", "http://vttm.local/*"],
+      "webOrigins": ["http://localhost:3002", "http://vttm.local"],
+      "protocol": "openid-connect",
+      "defaultClientScopes": ["openid", "profile", "email", "roles"],
+      "protocolMappers": [
+        {
+          "name": "realm-role-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "realm_roles",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "organization-id-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "claim.name": "organizationId",
+            "user.attribute": "organizationId",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin@vttm.local",
+      "email": "admin@vttm.local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "System",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Admin@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["SUPER_ADMIN"],
+      "attributes": {
+        "organizationId": ["a0000000-0000-0000-0000-000000000001"],
+        "phone": ["+84901234567"],
+        "locale": ["vi"]
+      }
+    },
+    {
+      "username": "customer@vttm.local",
+      "email": "customer@vttm.local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Demo",
+      "lastName": "Customer",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Customer@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["CUSTOMER"],
+      "attributes": {
+        "organizationId": ["a0000000-0000-0000-0000-000000000001"],
+        "locale": ["vi"]
+      }
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "roles",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "realm roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "realm_roles",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ]
+}

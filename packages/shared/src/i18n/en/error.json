@@ -1,0 +1,15 @@
+{
+  "notFound": "Not found",
+  "unauthorized": "Unauthorized",
+  "forbidden": "Forbidden",
+  "badRequest": "Bad request",
+  "conflict": "Resource already exists",
+  "internal": "Internal server error. Please try again later",
+  "invalidStatusTransition": "Cannot transition status from {{from}} to {{to}}",
+  "shipmentNotFound": "Shipment not found",
+  "orderNotFound": "Order not found",
+  "driverNotFound": "Driver not found",
+  "hubNotFound": "Hub not found",
+  "batchSealed": "Batch has been sealed",
+  "maxAttemptsReached": "Maximum delivery attempts reached"
+}

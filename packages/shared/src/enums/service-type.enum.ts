@@ -1,0 +1,8 @@
+export enum ServiceType {
+  STANDARD = 'STANDARD',
+  EXPRESS = 'EXPRESS',
+  SAME_DAY = 'SAME_DAY',
+  ECONOMY = 'ECONOMY',
+  OVERNIGHT = 'OVERNIGHT',
+  FREIGHT = 'FREIGHT',
+}

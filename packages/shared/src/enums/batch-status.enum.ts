@@ -1,0 +1,18 @@
+export enum BatchStatus {
+  OPEN = 'OPEN',
+  LOCKED = 'LOCKED',
+  SEALED = 'SEALED',
+  IN_TRANSIT = 'IN_TRANSIT',
+  AT_HUB = 'AT_HUB',
+  PROCESSING = 'PROCESSING',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum BatchType {
+  PICKUP = 'PICKUP',
+  TRANSFER = 'TRANSFER',
+  DELIVERY = 'DELIVERY',
+  SORT = 'SORT',
+  RETURN = 'RETURN',
+}

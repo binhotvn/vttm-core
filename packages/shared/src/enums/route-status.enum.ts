@@ -1,0 +1,22 @@
+export enum RouteStatus {
+  PLANNED = 'PLANNED',
+  OPTIMIZED = 'OPTIMIZED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum StopType {
+  PICKUP = 'PICKUP',
+  DELIVERY = 'DELIVERY',
+  HUB_DROPOFF = 'HUB_DROPOFF',
+  HUB_PICKUP = 'HUB_PICKUP',
+}
+
+export enum StopStatus {
+  PENDING = 'PENDING',
+  ARRIVED = 'ARRIVED',
+  COMPLETED = 'COMPLETED',
+  SKIPPED = 'SKIPPED',
+  FAILED = 'FAILED',
+}
