@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   Table, Tag, Badge, Button, Input, Select, DatePicker,
   Space, Tabs, Dropdown, Tooltip, message, Empty, Typography,
@@ -14,8 +15,12 @@ import {
   MoreVertical, Phone, MapPin, Zap, Timer, Flame, Rocket,
   Wallet, Package, List, LayoutGrid,
 } from 'lucide-react';
-import dayjs from 'dayjs';
+import { DataTable } from '@/components/data/data-table';
+import { StatusBadge } from '@/components/data/status-badge';
+import { StatsCard } from '@/components/data/stats-card';
+import { PageContainer } from '@/components/layout/page-container';
 import { apiFetch, getTokenFromCookie } from '@/lib/api-client';
+import { cn } from '@/lib/utils';
 
 const { RangePicker } = DatePicker;
 const { Title, Text } = Typography;
@@ -52,17 +57,13 @@ const PAYMENT_METHOD: Record<string, string> = {
 // ============================================================
 
 function formatVND(amount: number): string {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-    maximumFractionDigits: 0,
-  }).format(amount);
+  return new Intl.NumberFormat('vi-VN').format(amount) + '₫';
 }
 
 function formatPhone(phone: string): string {
   if (!phone) return '';
-  const clean = phone.replace(/\D/g, '');
-  if (clean.length === 10) return `${clean.slice(0, 4)} ${clean.slice(4, 7)} ${clean.slice(7)}`;
+  const cleaned = phone.replace(/\D/g, '');
+  if (cleaned.length === 10) return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7)}`;
   return phone;
 }
 
@@ -145,43 +146,69 @@ function KpiPill({
 // ============================================================
 
 export default function OrdersPage() {
+  const t = useTranslations();
   const router = useRouter();
   const pathname = usePathname();
-  const locale = pathname.split('/')[1] || 'vi';
+  const locale = pathname.split('/')[1];
 
-  const [activeTab, setActiveTab] = useState('all');
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const [searchText, setSearchText] = useState('');
+  // State
   const [data, setData] = useState<any[]>([]);
   const [meta, setMeta] = useState({ total: 0, page: 1, limit: 20, totalPages: 0 });
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [serviceFilter, setServiceFilter] = useState('');
+  const [createMenuOpen, setCreateMenuOpen] = useState(false);
 
-  const fetchOrders = async (page = 1) => {
-    setIsLoading(true);
+  const fetchOrders = useCallback(async (page = 1) => {
+    setLoading(true);
     try {
       const token = getTokenFromCookie();
-      const params = new URLSearchParams({ page: String(page), limit: '20' });
-      if (activeTab && activeTab !== 'all') params.set('status', activeTab);
-      if (searchText) params.set('search', searchText);
-      const result = await apiFetch(`/orders?${params}`, { token: token! });
+      if (!token) {
+        router.push(`/${locale}/login`);
+        return;
+      }
+      const params = new URLSearchParams({ page: String(page), limit: String(meta.limit) });
+      if (activeTab) params.set('status', activeTab);
+      if (searchQuery) params.set('search', searchQuery);
+      if (serviceFilter) params.set('serviceType', serviceFilter);
+      const result = await apiFetch(`/orders?${params}`, { token });
       setData(result.data || result);
       if (result.meta) setMeta(result.meta);
     } catch (e) {
       console.error(e);
     }
-    setIsLoading(false);
+    setLoading(false);
+  }, [activeTab, searchQuery, serviceFilter, meta.limit, locale, router]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => fetchOrders(), searchQuery ? 300 : 0);
+    return () => clearTimeout(timer);
+  }, [fetchOrders]);
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
   };
 
-  useEffect(() => { fetchOrders(); }, [activeTab]);
+  // Status tab counts (would come from API in real app)
+  const statusTabs = [
+    { key: '', label: t('status.all'), count: meta.total },
+    { key: 'DRAFT', label: t('status.DRAFT') },
+    { key: 'CONFIRMED', label: t('status.CONFIRMED') },
+    { key: 'PROCESSING', label: t('status.PROCESSING') },
+    { key: 'SHIPPED', label: t('status.SHIPPED') },
+    { key: 'DELIVERED', label: t('status.DELIVERED') },
+    { key: 'CANCELLED', label: t('status.CANCELLED') },
+    { key: 'RETURNED', label: t('status.RETURNED') },
+  ];
 
-  // ---- COLUMNS ----
-  const columns: ColumnsType<any> = [
+  // Table columns — compound cells
+  const columns = [
     {
-      title: 'Đơn hàng',
-      dataIndex: 'orderNumber',
-      width: 200,
-      fixed: 'left',
-      render: (val: string, record: any) => (
+      key: 'orderNumber',
+      header: t('orders.orderNumber'),
+      width: '200px',
+      render: (item: any) => (
         <div>
           <a
             style={{ fontWeight: 600, color: '#714B67' }}
@@ -230,24 +257,57 @@ export default function OrdersPage() {
       ),
     },
     {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      width: 170,
-      render: (status: string) => <StatusTag status={status} map={ORDER_STATUS} />,
+      key: 'recipient',
+      header: t('orders.recipient'),
+      width: '200px',
+      render: (item: any) => {
+        const addr = item.recipientAddress || {};
+        return (
+          <div>
+            <p className="text-sm font-medium text-gray-900">{addr.contactName || '—'}</p>
+            {addr.phone && (
+              <p className="flex items-center gap-1 mt-0.5 text-xs text-gray-400">
+                <Phone size={10} />
+                {formatPhone(addr.phone)}
+              </p>
+            )}
+            {(addr.districtName || addr.provinceName) && (
+              <p className="flex items-center gap-1 mt-0.5 text-xs text-gray-400 text-truncate max-w-[180px]">
+                <MapPin size={10} />
+                {[addr.districtName, addr.provinceName].filter(Boolean).join(', ')}
+              </p>
+            )}
+          </div>
+        );
+      },
     },
     {
-      title: 'Dịch vụ',
-      dataIndex: 'serviceType',
-      width: 130,
-      render: (type: string) => <StatusTag status={type} map={SERVICE_TYPE} />,
+      key: 'status',
+      header: t('common.status'),
+      width: '150px',
+      render: (item: any) => <StatusBadge status={item.status} locale={locale} />,
     },
     {
-      title: 'Thanh toán',
-      dataIndex: 'paymentMethod',
-      width: 130,
-      render: (method: string) => (
-        <Text style={{ fontSize: 13 }}>{PAYMENT_METHOD[method] || method}</Text>
-      ),
+      key: 'codAmount',
+      header: t('orders.cod'),
+      width: '130px',
+      align: 'right' as const,
+      render: (item: any) => {
+        const amount = Number(item.codAmount);
+        return (
+          <div>
+            {amount > 0 ? (
+              <span className="text-sm font-semibold text-red-600">{formatVND(amount)}</span>
+            ) : (
+              <span className="text-sm text-gray-300">—</span>
+            )}
+            <p className="text-xs text-gray-400 mt-0.5">
+              {item.paymentMethod === 'COD' ? t('orders.collect') :
+               item.paymentMethod === 'PREPAID' ? t('orders.prepaid') : t('orders.postpaid')}
+            </p>
+          </div>
+        );
+      },
     },
     {
       title: 'COD',
@@ -259,16 +319,26 @@ export default function OrdersPage() {
           ? <Text strong style={{ color: '#c92a2a' }}>{formatVND(amount)}</Text>
           : <Text type="secondary">—</Text>
       ),
-      sorter: true,
     },
     {
-      title: 'Số kiện',
-      dataIndex: 'items',
-      width: 80,
-      align: 'center',
-      render: (items: any) => {
-        const count = Array.isArray(items) ? items.length : items;
-        return count || '—';
+      key: 'serviceType',
+      header: t('orders.service'),
+      width: '120px',
+      render: (item: any) => {
+        const serviceKey = item.serviceType as string;
+        const label = t(`serviceType.${serviceKey}`, { defaultValue: serviceKey });
+        const colors: Record<string, string> = {
+          STANDARD: 'bg-gray-100 text-gray-600',
+          EXPRESS: 'bg-blue-50 text-blue-700',
+          SAME_DAY: 'bg-red-50 text-red-700',
+          ECONOMY: 'bg-green-50 text-green-700',
+          OVERNIGHT: 'bg-purple-50 text-purple-700',
+        };
+        return (
+          <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium', colors[serviceKey] || 'bg-gray-100 text-gray-600')}>
+            {label}
+          </span>
+        );
       },
     },
     {
@@ -285,27 +355,10 @@ export default function OrdersPage() {
       defaultSortOrder: 'descend',
     },
     {
-      title: '',
       key: 'actions',
-      width: 48,
-      fixed: 'right',
-      render: (_: any, record: any) => (
-        <Dropdown
-          menu={{
-            items: [
-              { key: 'view',   icon: <Eye size={14} />,           label: 'Xem chi tiết', onClick: () => router.push(`/${locale}/orders/${record.id}`) },
-              { key: 'track',  icon: <PackageSearch size={14} />, label: 'Theo dõi' },
-              { key: 'label',  icon: <Printer size={14} />,       label: 'In nhãn' },
-              { key: 'copy',   icon: <Copy size={14} />,          label: 'Sao chép mã VĐ' },
-              { type: 'divider' },
-              { key: 'cancel', icon: <CircleX size={14} />,       label: 'Hủy đơn', danger: true },
-            ],
-          }}
-          trigger={['click']}
-        >
-          <Button type="text" size="small" icon={<MoreVertical size={16} />} />
-        </Dropdown>
-      ),
+      header: '',
+      width: '50px',
+      render: (item: any) => <RowActions item={item} locale={locale} router={router} t={t} />,
     },
   ];
 

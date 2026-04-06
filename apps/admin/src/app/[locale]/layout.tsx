@@ -1,9 +1,7 @@
 import { NextIntlClientProvider } from 'next-intl';
 import { notFound } from 'next/navigation';
-import { ConfigProvider } from 'antd';
-import viVN from 'antd/locale/vi_VN';
 import { routing } from '@/i18n/routing';
-import { AdminLayout } from '@/components/layout/AdminLayout';
+import { AppShell } from '@/components/layout/app-shell';
 
 export default async function LocaleLayout({
   children,
@@ -74,6 +72,7 @@ export default async function LocaleLayout({
       >
         <AdminLayout>{children}</AdminLayout>
       </ConfigProvider>
+      <AppShell>{children}</AppShell>
     </NextIntlClientProvider>
   );
 }
