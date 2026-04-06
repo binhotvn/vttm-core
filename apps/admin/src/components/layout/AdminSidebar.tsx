@@ -1,254 +1,197 @@
 'use client';
 
-import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Layout, Menu, Badge, Tooltip, Avatar, Typography } from 'antd';
-import type { MenuProps } from 'antd';
+import { Tooltip, Badge, Avatar } from 'antd';
 import {
   LayoutDashboard,
   ShoppingCart,
   Package,
   Layers,
-  Users,
+  Truck,
   Warehouse,
   ClipboardList,
   Scale,
   UserCog,
   Settings,
-  HelpCircle,
-  ChevronLeft,
-  ChevronRight,
-  Truck,
 } from 'lucide-react';
 
-const { Sider } = Layout;
-const { Text } = Typography;
-
-// Wrap Lucide icons for Ant Design Menu compatibility
-const LucideIcon = ({ icon: Icon, size = 18 }: { icon: any; size?: number }) => (
-  <Icon size={size} strokeWidth={1.75} style={{ minWidth: size }} />
-);
-
-interface AdminSidebarProps {
-  collapsed: boolean;
-  onCollapse: (collapsed: boolean) => void;
+interface NavItem {
+  key: string;
+  href: string;
+  icon: any;
+  label: string;
+  badge?: boolean;
 }
 
-export function AdminSidebar({ collapsed, onCollapse }: AdminSidebarProps) {
+const NAV_GROUPS: { items: NavItem[] }[] = [
+  {
+    items: [
+      { key: 'dashboard',  href: '/',          icon: LayoutDashboard, label: 'Tổng quan' },
+      { key: 'orders',     href: '/orders',    icon: ShoppingCart,    label: 'Đơn hàng',     badge: true },
+      { key: 'shipments',  href: '/shipments', icon: Package,         label: 'Vận đơn',      badge: true },
+      { key: 'batches',    href: '/batches',   icon: Layers,          label: 'Lô hàng' },
+    ],
+  },
+  {
+    items: [
+      { key: 'drivers',  href: '/drivers',  icon: Truck,         label: 'Tài xế' },
+      { key: 'hubs',     href: '/hubs',     icon: Warehouse,     label: 'Kho' },
+      { key: 'pickups',  href: '/pickups',  icon: ClipboardList, label: 'Lấy hàng', badge: true },
+      { key: 'cod',      href: '/cod',      icon: Scale,         label: 'Đối soát COD' },
+    ],
+  },
+  {
+    items: [
+      { key: 'users',    href: '/users',    icon: UserCog,  label: 'Người dùng' },
+      { key: 'settings', href: '/settings', icon: Settings, label: 'Cài đặt' },
+    ],
+  },
+];
+
+export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-
-  // Remove locale prefix from pathname for matching
+  const locale = pathname.split('/')[1] || 'vi';
   const cleanPath = pathname.replace(/^\/(vi|en)/, '') || '/';
 
-  const menuItems: MenuProps['items'] = [
-    {
-      type: 'group',
-      label: !collapsed ? 'QUẢN LÝ ĐƠN' : undefined,
-      children: [
-        {
-          key: '/dashboard',
-          icon: <LucideIcon icon={LayoutDashboard} />,
-          label: 'Tổng quan',
-        },
-        {
-          key: '/orders',
-          icon: <LucideIcon icon={ShoppingCart} />,
-          label: (
-            <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              Đơn hàng
-              <Badge count={12} size="small" style={{ marginLeft: 'auto' }} />
-            </span>
-          ),
-        },
-        {
-          key: '/shipments',
-          icon: <LucideIcon icon={Package} />,
-          label: (
-            <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              Vận đơn
-              <Badge count={3} size="small" color="#1677ff" style={{ marginLeft: 'auto' }} />
-            </span>
-          ),
-        },
-        {
-          key: '/batches',
-          icon: <LucideIcon icon={Layers} />,
-          label: 'Lô hàng',
-        },
-      ],
-    },
-    {
-      type: 'group',
-      label: !collapsed ? 'VẬN HÀNH' : undefined,
-      children: [
-        {
-          key: '/drivers',
-          icon: <LucideIcon icon={Truck} />,
-          label: 'Tài xế',
-        },
-        {
-          key: '/hubs',
-          icon: <LucideIcon icon={Warehouse} />,
-          label: 'Kho',
-        },
-        {
-          key: '/pickups',
-          icon: <LucideIcon icon={ClipboardList} />,
-          label: (
-            <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              Lấy hàng
-              <Badge count={5} size="small" color="#faad14" style={{ marginLeft: 'auto' }} />
-            </span>
-          ),
-        },
-        {
-          key: '/cod',
-          icon: <LucideIcon icon={Scale} />,
-          label: 'Đối soát COD',
-        },
-      ],
-    },
-    {
-      type: 'group',
-      label: !collapsed ? 'HỆ THỐNG' : undefined,
-      children: [
-        {
-          key: '/users',
-          icon: <LucideIcon icon={UserCog} />,
-          label: 'Người dùng',
-        },
-        {
-          key: '/settings',
-          icon: <LucideIcon icon={Settings} />,
-          label: 'Cài đặt',
-        },
-      ],
-    },
-  ];
-
-  const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
-    // Extract locale from current pathname
-    const locale = pathname.split('/')[1] || 'vi';
-    const targetPath = key === '/dashboard' ? `/${locale}` : `/${locale}${key}`;
-    router.push(targetPath);
+  const isActive = (href: string) => {
+    if (href === '/') return cleanPath === '/' || cleanPath === '';
+    return cleanPath === href || cleanPath.startsWith(href + '/');
   };
 
-  // Map cleanPath for selectedKeys — "/" maps to "/dashboard"
-  const selectedKey = cleanPath === '/' || cleanPath === '' ? '/dashboard' : cleanPath;
-
   return (
-    <Sider
-      width={256}
-      collapsedWidth={72}
-      collapsed={collapsed}
+    <div
       style={{
+        width: 56,
         height: '100vh',
         position: 'fixed',
         left: 0,
         top: 0,
-        bottom: 0,
+        background: 'linear-gradient(180deg, #714B67 0%, #5B3A52 100%)',
         display: 'flex',
         flexDirection: 'column',
-        borderRight: '1px solid rgba(255,255,255,0.06)',
+        alignItems: 'center',
+        zIndex: 200,
+        paddingTop: 8,
       }}
-      theme="dark"
     >
       {/* Logo */}
       <div
         style={{
-          padding: collapsed ? '20px 0' : '20px 20px',
+          width: 36,
+          height: 36,
+          borderRadius: 8,
+          background: 'rgba(255,255,255,0.2)',
           display: 'flex',
           alignItems: 'center',
-          gap: 12,
-          justifyContent: collapsed ? 'center' : 'flex-start',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-          marginBottom: 8,
-        }}
-      >
-        <div
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            background: 'linear-gradient(135deg, #1677ff, #4096ff)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 700,
-            fontSize: 14,
-            color: '#fff',
-            flexShrink: 0,
-          }}
-        >
-          VT
-        </div>
-        {!collapsed && (
-          <div>
-            <div style={{ color: '#fff', fontWeight: 600, fontSize: 16, lineHeight: 1.2 }}>VTTM</div>
-            <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11 }}>Logistics Platform</div>
-          </div>
-        )}
-      </div>
-
-      {/* Menu */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[selectedKey]}
-          items={menuItems}
-          onClick={handleMenuClick}
-          style={{ border: 'none' }}
-        />
-      </div>
-
-      {/* Collapse toggle */}
-      <div
-        onClick={() => onCollapse(!collapsed)}
-        style={{
-          padding: '12px 0',
-          display: 'flex',
           justifyContent: 'center',
+          fontWeight: 700,
+          fontSize: 13,
+          color: '#fff',
           cursor: 'pointer',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
-          color: 'rgba(255,255,255,0.45)',
-          transition: 'color 0.2s',
+          marginBottom: 12,
+          flexShrink: 0,
         }}
+        onClick={() => router.push(`/${locale}`)}
       >
-        {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        VT
       </div>
 
-      {/* User profile card */}
-      {!collapsed && (
-        <div
+      {/* Nav groups */}
+      <div style={{ flex: 1, width: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {NAV_GROUPS.map((group, gi) => (
+          <div key={gi}>
+            {gi > 0 && (
+              <div style={{ height: 1, background: 'rgba(255,255,255,0.12)', margin: '6px 10px' }} />
+            )}
+            {group.items.map((item) => {
+              const active = isActive(item.href);
+              const fullHref = item.href === '/' ? `/${locale}` : `/${locale}${item.href}`;
+              const Icon = item.icon;
+              return (
+                <Tooltip key={item.key} title={item.label} placement="right">
+                  <div
+                    onClick={() => router.push(fullHref)}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 8,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      margin: '2px auto',
+                      background: active ? 'rgba(255,255,255,0.2)' : 'transparent',
+                      transition: 'background 0.15s',
+                      position: 'relative',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!active) e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <Icon
+                      size={20}
+                      strokeWidth={1.75}
+                      style={{ color: active ? '#fff' : 'rgba(255,255,255,0.7)' }}
+                    />
+                    {item.badge && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 6,
+                          right: 6,
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          background: '#e8590c',
+                          border: '1.5px solid #714B67',
+                        }}
+                      />
+                    )}
+                  </div>
+                </Tooltip>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom: user avatar */}
+      <div style={{ paddingBottom: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+        <Tooltip title="Cài đặt" placement="right">
+          <div
+            onClick={() => router.push(`/${locale}/settings`)}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+          >
+            <Settings size={18} style={{ color: 'rgba(255,255,255,0.6)' }} />
+          </div>
+        </Tooltip>
+        <Avatar
+          size={32}
           style={{
-            margin: '0 12px 12px',
-            padding: '10px 12px',
-            background: 'rgba(255,255,255,0.04)',
-            borderRadius: 10,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
+            background: 'rgba(255,255,255,0.2)',
+            color: '#fff',
+            fontSize: 13,
             cursor: 'pointer',
           }}
         >
-          <Avatar size={32} style={{ background: '#1677ff', fontSize: 13 }}>A</Avatar>
-          <div style={{ overflow: 'hidden' }}>
-            <div style={{ color: '#fff', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Admin User
-            </div>
-            <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11 }}>
-              Quản trị viên
-            </div>
-          </div>
-        </div>
-      )}
-      {collapsed && (
-        <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: 12 }}>
-          <Avatar size={32} style={{ background: '#1677ff', fontSize: 13, cursor: 'pointer' }}>A</Avatar>
-        </div>
-      )}
-    </Sider>
+          A
+        </Avatar>
+      </div>
+    </div>
   );
 }

@@ -4,9 +4,16 @@ import { useEffect, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter, usePathname } from 'next/navigation';
 import {
-  ShoppingCart, Clock, Truck, CheckCircle, Plus, Upload, Copy,
-  ChevronDown, Search, X, Eye, Printer, XCircle, MoreHorizontal,
-  Phone, MapPin,
+  Table, Tag, Badge, Button, Input, Select, DatePicker,
+  Space, Tabs, Dropdown, Tooltip, message, Empty, Typography,
+} from 'antd';
+import type { ColumnsType } from 'antd/es/table';
+import {
+  ShoppingCart, Clock, Truck, CircleCheck, CircleDot,
+  Plus, Upload, ChevronDown, Search, X, RefreshCw, Download,
+  Columns3, Eye, PackageSearch, Printer, Copy, CircleX,
+  MoreVertical, Phone, MapPin, Zap, Timer, Flame, Rocket,
+  Wallet, Package, List, LayoutGrid,
 } from 'lucide-react';
 import { DataTable } from '@/components/data/data-table';
 import { StatusBadge } from '@/components/data/status-badge';
@@ -15,8 +22,39 @@ import { PageContainer } from '@/components/layout/page-container';
 import { apiFetch, getTokenFromCookie } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 
-const ORDER_STATUSES = ['', 'DRAFT', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'RETURNED'];
-const SERVICE_TYPES = ['', 'STANDARD', 'EXPRESS', 'SAME_DAY', 'ECONOMY', 'OVERNIGHT'];
+const { RangePicker } = DatePicker;
+const { Title, Text } = Typography;
+
+// ============================================================
+// STATUS & SERVICE CONFIGS
+// ============================================================
+
+const ORDER_STATUS: Record<string, { label: string; color: string; icon: any }> = {
+  DRAFT:       { label: 'Nháp',                color: 'default',    icon: CircleDot },
+  CONFIRMED:   { label: 'Đã xác nhận',         color: '#8854d0',    icon: CircleCheck },
+  PROCESSING:  { label: 'Đang xử lý',          color: '#714B67',    icon: RefreshCw },
+  SHIPPED:     { label: 'Đã giao vận chuyển',   color: '#2d98da',    icon: Truck },
+  DELIVERED:   { label: 'Đã giao',              color: '#20bf6b',    icon: CircleCheck },
+  CANCELLED:   { label: 'Đã hủy',              color: 'default',    icon: CircleX },
+};
+
+const SERVICE_TYPE: Record<string, { label: string; color: string; icon: any }> = {
+  STANDARD:  { label: 'Tiêu chuẩn', color: 'default', icon: Timer },
+  EXPRESS:   { label: 'Nhanh',       color: '#714B67', icon: Zap },
+  SAME_DAY:  { label: 'Trong ngày',  color: '#e8590c', icon: Flame },
+  ECONOMY:   { label: 'Tiết kiệm',  color: '#20bf6b', icon: Wallet },
+  OVERNIGHT: { label: 'Hỏa tốc',    color: '#8854d0', icon: Rocket },
+};
+
+const PAYMENT_METHOD: Record<string, string> = {
+  PREPAID: 'Đã thanh toán',
+  COD:     'Thu hộ (COD)',
+  BILLED:  'Trả sau',
+};
+
+// ============================================================
+// HELPERS
+// ============================================================
 
 function formatVND(amount: number): string {
   return new Intl.NumberFormat('vi-VN').format(amount) + '₫';
@@ -28,6 +66,84 @@ function formatPhone(phone: string): string {
   if (cleaned.length === 10) return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7)}`;
   return phone;
 }
+
+// ============================================================
+// STATUS TAG
+// ============================================================
+
+function StatusTag({ status, map }: { status: string; map: Record<string, any> }) {
+  const config = map[status];
+  if (!config) return <Tag>{status}</Tag>;
+  const IconComp = config.icon;
+  return (
+    <Tag
+      color={config.color}
+      style={{
+        borderRadius: 20,
+        padding: '2px 10px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        fontSize: 12,
+      }}
+    >
+      {IconComp && <IconComp size={12} strokeWidth={2} />}
+      {config.label}
+    </Tag>
+  );
+}
+
+// ============================================================
+// KPI PILL
+// ============================================================
+
+function KpiPill({
+  label, value, active, color, onClick,
+}: {
+  label: string;
+  value: number;
+  active?: boolean;
+  color?: string;
+  onClick?: () => void;
+}) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '6px 16px',
+        borderRadius: 20,
+        border: `1px solid ${active ? (color || '#714B67') : '#e0e0e0'}`,
+        background: active ? `${color || '#714B67'}10` : '#fff',
+        cursor: 'pointer',
+        transition: 'all 0.15s',
+        fontSize: 13,
+        fontWeight: active ? 600 : 400,
+        color: active ? (color || '#714B67') : '#495057',
+      }}
+    >
+      {label}
+      <span style={{
+        background: active ? (color || '#714B67') : '#e9ecef',
+        color: active ? '#fff' : '#495057',
+        borderRadius: 10,
+        padding: '1px 8px',
+        fontSize: 12,
+        fontWeight: 600,
+        minWidth: 20,
+        textAlign: 'center',
+      }}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+// ============================================================
+// MAIN PAGE
+// ============================================================
 
 export default function OrdersPage() {
   const t = useTranslations();
@@ -94,22 +210,47 @@ export default function OrdersPage() {
       width: '200px',
       render: (item: any) => (
         <div>
-          <button
-            onClick={() => router.push(`/${locale}/orders/${item.id}`)}
-            className="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+          <a
+            style={{ fontWeight: 600, color: '#714B67' }}
+            onClick={() => router.push(`/${locale}/orders/${record.id}`)}
           >
-            {item.orderNumber}
-          </button>
-          {item.trackingNumber && (
-            <div className="flex items-center gap-1 mt-0.5">
-              <span className="text-xs text-gray-400 font-mono">{item.trackingNumber}</span>
-              <button
-                onClick={() => copyToClipboard(item.trackingNumber)}
-                className="p-0.5 rounded text-gray-300 hover:text-gray-500 transition-colors"
-                title={t('orders.copyTracking')}
-              >
-                <Copy size={11} />
-              </button>
+            {val}
+          </a>
+          {record.trackingNumber && (
+            <div style={{ fontSize: 12, color: '#868e96', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Copy
+                size={11} strokeWidth={1.5}
+                style={{ cursor: 'pointer', flexShrink: 0 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigator.clipboard.writeText(record.trackingNumber);
+                  message.success('Đã sao chép mã vận đơn');
+                }}
+              />
+              <span>{record.trackingNumber}</span>
+            </div>
+          )}
+        </div>
+      ),
+      sorter: true,
+    },
+    {
+      title: 'Người nhận',
+      dataIndex: 'recipientName',
+      width: 200,
+      render: (val: string, record: any) => (
+        <div>
+          <div style={{ fontWeight: 500 }}>{val || '—'}</div>
+          {record.recipientPhone && (
+            <div style={{ fontSize: 12, color: '#868e96', marginTop: 2, display: 'flex', alignItems: 'center', gap: 3 }}>
+              <Phone size={11} strokeWidth={1.5} />
+              {formatPhone(record.recipientPhone)}
+            </div>
+          )}
+          {record.recipientDistrict && (
+            <div style={{ fontSize: 12, color: '#adb5bd', display: 'flex', alignItems: 'center', gap: 3 }}>
+              <MapPin size={11} strokeWidth={1.5} />
+              {record.recipientDistrict}
             </div>
           )}
         </div>
@@ -169,14 +310,14 @@ export default function OrdersPage() {
       },
     },
     {
-      key: 'shippingFee',
-      header: t('orders.shippingFee'),
-      width: '110px',
-      align: 'right' as const,
-      render: (item: any) => (
-        <span className="text-sm font-medium text-gray-700">
-          {formatVND(Number(item.shippingFee || 0))}
-        </span>
+      title: 'COD',
+      dataIndex: 'codAmount',
+      width: 130,
+      align: 'right',
+      render: (amount: number) => (
+        amount > 0
+          ? <Text strong style={{ color: '#c92a2a' }}>{formatVND(amount)}</Text>
+          : <Text type="secondary">—</Text>
       ),
     },
     {
@@ -201,18 +342,17 @@ export default function OrdersPage() {
       },
     },
     {
-      key: 'createdAt',
-      header: t('orders.createdAt'),
-      width: '120px',
-      render: (item: any) => {
-        const d = new Date(item.createdAt);
-        return (
-          <div>
-            <p className="text-sm text-gray-900">{d.toLocaleDateString('vi-VN')}</p>
-            <p className="text-xs text-gray-400">{d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</p>
-          </div>
-        );
-      },
+      title: 'Ngày tạo',
+      dataIndex: 'createdAt',
+      width: 130,
+      render: (date: string) => date ? (
+        <div>
+          <div style={{ fontSize: 13 }}>{dayjs(date).format('DD/MM/YYYY')}</div>
+          <div style={{ fontSize: 12, color: '#868e96' }}>{dayjs(date).format('HH:mm')}</div>
+        </div>
+      ) : '—',
+      sorter: true,
+      defaultSortOrder: 'descend',
     },
     {
       key: 'actions',
@@ -222,300 +362,228 @@ export default function OrdersPage() {
     },
   ];
 
-  const bulkActions = [
-    {
-      key: 'print',
-      label: t('table.printLabels'),
-      icon: <Printer size={14} />,
-      onClick: (ids: string[]) => console.log('Print labels:', ids),
-    },
-    {
-      key: 'export',
-      label: t('table.exportExcel'),
-      icon: <Upload size={14} />,
-      onClick: (ids: string[]) => console.log('Export:', ids),
-    },
-    {
-      key: 'cancel',
-      label: t('table.cancelSelected'),
-      icon: <XCircle size={14} />,
-      danger: true,
-      onClick: (ids: string[]) => console.log('Cancel:', ids),
-    },
+  // ---- STATUS TABS ----
+  const statusTabs = [
+    { key: 'all',        label: 'Tất cả',       count: meta.total || 0 },
+    { key: 'DRAFT',      label: 'Nháp',          count: 0 },
+    { key: 'CONFIRMED',  label: 'Đã xác nhận',  count: 0 },
+    { key: 'PROCESSING', label: 'Đang xử lý',   count: 0 },
+    { key: 'SHIPPED',    label: 'Đã giao VC',   count: 0 },
+    { key: 'DELIVERED',  label: 'Đã giao',      count: 0 },
+    { key: 'CANCELLED',  label: 'Đã hủy',       count: 0 },
   ];
 
   return (
-    <PageContainer
-      title={t('orders.title')}
-      description={t('orders.description')}
-      actions={
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => router.push(`/${locale}/orders/import`)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-          >
-            <Upload size={16} />
-            {t('orders.importExcel')}
-          </button>
-          <div className="relative">
-            <button
-              onClick={() => setCreateMenuOpen(!createMenuOpen)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-            >
-              <Plus size={16} />
-              {t('orders.create')}
-              <ChevronDown size={14} className={cn('transition-transform', createMenuOpen && 'rotate-180')} />
-            </button>
-            {createMenuOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setCreateMenuOpen(false)} />
-                <div className="dropdown-menu absolute right-0 top-full mt-1 w-52 py-1 z-50">
-                  <button
-                    onClick={() => { setCreateMenuOpen(false); router.push(`/${locale}/orders/create`); }}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <Plus size={14} className="text-gray-400" />
-                    {t('orders.createSingle')}
-                  </button>
-                  <button
-                    onClick={() => { setCreateMenuOpen(false); router.push(`/${locale}/orders/import`); }}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <Upload size={14} className="text-gray-400" />
-                    {t('orders.importExcel')}
-                  </button>
-                  <button
-                    onClick={() => { setCreateMenuOpen(false); router.push(`/${locale}/orders/create?from=existing`); }}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <Copy size={14} className="text-gray-400" />
-                    {t('orders.createFromOld')}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      }
-    >
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatsCard
-          title={t('orders.totalThisMonth')}
-          value={meta.total || 0}
-          icon={<ShoppingCart size={20} />}
-          accentColor="blue"
-          trend={{ value: 12, label: '' }}
-          subtitle={t('orders.comparedLastMonth')}
-        />
-        <StatsCard
-          title={t('orders.pending')}
-          value={0}
-          icon={<Clock size={20} />}
-          accentColor="yellow"
-          onClick={() => setActiveTab('CONFIRMED')}
-        />
-        <StatsCard
-          title={t('orders.shipping')}
-          value={0}
-          icon={<Truck size={20} />}
-          accentColor="blue"
-          onClick={() => setActiveTab('SHIPPED')}
-        />
-        <StatsCard
-          title={t('orders.deliveredToday')}
-          value={0}
-          icon={<CheckCircle size={20} />}
-          accentColor="green"
-          onClick={() => setActiveTab('DELIVERED')}
-        />
-      </div>
-
-      {/* Filter Bar */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 mb-4">
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Search */}
-          <div className="flex items-center gap-2 flex-1 min-w-[200px] max-w-[360px] px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 focus-within:bg-white focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
-            <Search size={16} className="text-gray-400 shrink-0" />
-            <input
-              type="text"
-              placeholder={t('filters.searchPlaceholder')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-gray-600">
-                <X size={14} />
-              </button>
-            )}
-          </div>
-
-          {/* Status filter */}
-          <select
-            value={activeTab}
-            onChange={(e) => setActiveTab(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
-          >
-            <option value="">{t('filters.status')}: {t('status.all')}</option>
-            {ORDER_STATUSES.filter(Boolean).map((s) => (
-              <option key={s} value={s}>{t(`status.${s}`)}</option>
-            ))}
-          </select>
-
-          {/* Service filter */}
-          <select
-            value={serviceFilter}
-            onChange={(e) => setServiceFilter(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
-          >
-            <option value="">{t('filters.service')}: {t('status.all')}</option>
-            {SERVICE_TYPES.filter(Boolean).map((s) => (
-              <option key={s} value={s}>{t(`serviceType.${s}`)}</option>
-            ))}
-          </select>
-
-          {/* Clear filters */}
-          {(activeTab || searchQuery || serviceFilter) && (
-            <button
-              onClick={() => { setActiveTab(''); setSearchQuery(''); setServiceFilter(''); }}
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
-            >
-              {t('filters.clearAll')}
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Status Tabs */}
-      <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
-        {statusTabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={cn(
-              'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors',
-              activeTab === tab.key
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-            )}
-          >
-            {tab.label}
-            {tab.count != null && (
-              <span className={cn(
-                'min-w-[20px] h-5 flex items-center justify-center rounded-full text-[11px] font-semibold px-1.5',
-                activeTab === tab.key
-                  ? 'bg-white/20 text-white'
-                  : 'bg-gray-100 text-gray-500'
-              )}>
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Data Table */}
-      <DataTable
-        columns={columns}
-        data={data}
-        total={meta.total}
-        page={meta.page}
-        limit={meta.limit}
-        loading={loading}
-        selectable
-        bulkActions={bulkActions}
-        onPageChange={(p) => fetchOrders(p)}
-        onLimitChange={(l) => setMeta((m) => ({ ...m, limit: l }))}
-        onRefresh={() => fetchOrders(meta.page)}
-        onRowClick={(item) => router.push(`/${locale}/orders/${item.id}`)}
-        showingLabel={t('orders.showing')}
-        ofLabel={t('orders.of')}
-        unitLabel={t('orders.orderUnit')}
-        emptyContent={
-          <div className="py-8 text-center">
-            <div className="text-5xl mb-4">📦</div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('orders.noOrders')}</h3>
-            <p className="text-sm text-gray-500 max-w-md mx-auto mb-6">{t('orders.noOrdersDesc')}</p>
-            <div className="flex items-center justify-center gap-3">
-              <button
-                onClick={() => router.push(`/${locale}/orders/create`)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-              >
-                <Plus size={16} />
-                {t('orders.create')}
-              </button>
-              <button
-                onClick={() => router.push(`/${locale}/orders/import`)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-              >
-                <Upload size={16} />
-                {t('orders.importExcel')}
-              </button>
-            </div>
-          </div>
-        }
-      />
-    </PageContainer>
-  );
-}
-
-// Row actions dropdown component
-function RowActions({ item, locale, router, t }: { item: any; locale: string; router: any; t: any }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="relative">
-      <button
-        onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
-        className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+    <div>
+      {/* ── Control Panel ── */}
+      <div
+        style={{
+          background: '#fff',
+          padding: '12px 24px',
+          borderBottom: '1px solid #dee2e6',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
       >
-        <MoreHorizontal size={16} />
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="dropdown-menu absolute right-0 top-full mt-1 w-48 py-1 z-50">
-            <button
-              onClick={() => { router.push(`/${locale}/orders/${item.id}`); setOpen(false); }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              <Eye size={14} className="text-gray-400" />
-              {t('orders.viewDetail')}
-            </button>
-            <button
-              onClick={() => setOpen(false)}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              <Search size={14} className="text-gray-400" />
-              {t('orders.track')}
-            </button>
-            <button
-              onClick={() => setOpen(false)}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              <Printer size={14} className="text-gray-400" />
-              {t('orders.printLabel')}
-            </button>
-            {item.trackingNumber && (
-              <button
-                onClick={() => { navigator.clipboard.writeText(item.trackingNumber); setOpen(false); }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                <Copy size={14} className="text-gray-400" />
-                {t('orders.copyTracking')}
-              </button>
-            )}
-            <div className="my-1 border-t border-gray-100" />
-            <button
-              onClick={() => setOpen(false)}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-            >
-              <XCircle size={14} />
-              {t('orders.cancelOrder')}
-            </button>
+        <Title level={4} style={{ margin: 0, color: '#212529' }}>Đơn hàng</Title>
+        <Space>
+          <Button icon={<Upload size={14} />}>Nhập Excel</Button>
+          <Dropdown.Button
+            type="primary"
+            icon={<ChevronDown size={14} />}
+            menu={{
+              items: [
+                { key: 'single', icon: <Plus size={14} />,  label: 'Tạo đơn lẻ' },
+                { key: 'bulk',   icon: <Upload size={14} />, label: 'Nhập từ Excel/CSV' },
+                { key: 'copy',   icon: <Copy size={14} />,   label: 'Tạo từ đơn cũ' },
+              ],
+            }}
+          >
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <Plus size={14} /> Tạo mới
+            </span>
+          </Dropdown.Button>
+          {/* View switcher */}
+          <div style={{ display: 'flex', border: '1px solid #dee2e6', borderRadius: 6, overflow: 'hidden' }}>
+            <Tooltip title="Danh sách">
+              <div style={{ padding: '5px 10px', background: '#714B67', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                <List size={16} />
+              </div>
+            </Tooltip>
+            <Tooltip title="Kanban">
+              <div style={{ padding: '5px 10px', background: '#fff', color: '#868e96', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                <LayoutGrid size={16} />
+              </div>
+            </Tooltip>
           </div>
-        </>
+        </Space>
+      </div>
+
+      {/* ── KPI Pills ── */}
+      <div style={{ background: '#fff', padding: '12px 24px', borderBottom: '1px solid #dee2e6', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <KpiPill label="Tổng đơn"      value={meta.total || 0} active={activeTab === 'all'}        color="#714B67" onClick={() => setActiveTab('all')} />
+        <KpiPill label="Chờ xử lý"     value={0}               active={activeTab === 'PROCESSING'} color="#e8590c" onClick={() => setActiveTab('PROCESSING')} />
+        <KpiPill label="Đang giao"      value={0}               active={activeTab === 'SHIPPED'}    color="#2d98da" onClick={() => setActiveTab('SHIPPED')} />
+        <KpiPill label="Đã giao"        value={0}               active={activeTab === 'DELIVERED'}  color="#20bf6b" onClick={() => setActiveTab('DELIVERED')} />
+        <KpiPill label="Đã hủy"         value={0}               active={activeTab === 'CANCELLED'}  color="#868e96" onClick={() => setActiveTab('CANCELLED')} />
+      </div>
+
+      {/* ── Search & Filter Bar ── */}
+      <div style={{ background: '#fff', padding: '10px 24px', borderBottom: '1px solid #dee2e6', display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <Input
+          prefix={<Search size={14} style={{ color: '#adb5bd' }} />}
+          placeholder="Tìm kiếm đơn hàng..."
+          allowClear
+          style={{ width: 260, borderRadius: 6 }}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+        <Select
+          placeholder="Dịch vụ"
+          allowClear
+          style={{ width: 140 }}
+          options={Object.entries(SERVICE_TYPE).map(([value, c]) => ({ value, label: c.label }))}
+        />
+        <Select
+          placeholder="Thanh toán"
+          allowClear
+          style={{ width: 140 }}
+          options={Object.entries(PAYMENT_METHOD).map(([value, label]) => ({ value, label }))}
+        />
+        <RangePicker
+          placeholder={['Từ ngày', 'Đến ngày']}
+          style={{ borderRadius: 6 }}
+          presets={[
+            { label: 'Hôm nay', value: [dayjs(), dayjs()] },
+            { label: '7 ngày qua', value: [dayjs().subtract(7, 'd'), dayjs()] },
+            { label: '30 ngày qua', value: [dayjs().subtract(30, 'd'), dayjs()] },
+            { label: 'Tháng này', value: [dayjs().startOf('month'), dayjs()] },
+          ]}
+        />
+        <Button type="link" icon={<X size={12} />} style={{ color: '#868e96' }}>Xóa lọc</Button>
+
+        <div style={{ flex: 1 }} />
+
+        <Space size={4}>
+          <Tooltip title="Làm mới">
+            <Button type="text" size="small" icon={<RefreshCw size={14} />} onClick={() => fetchOrders(meta.page)} />
+          </Tooltip>
+          <Tooltip title="Xuất Excel">
+            <Button type="text" size="small" icon={<Download size={14} />} />
+          </Tooltip>
+          <Tooltip title="Tùy chỉnh cột">
+            <Button type="text" size="small" icon={<Columns3 size={14} />} />
+          </Tooltip>
+        </Space>
+      </div>
+
+      {/* ── Status Tabs ── */}
+      <div style={{ background: '#fff', padding: '0 24px', borderBottom: '1px solid #dee2e6' }}>
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          style={{ marginBottom: 0 }}
+          items={statusTabs.map((tab) => ({
+            key: tab.key,
+            label: (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                {tab.label}
+                <Badge
+                  count={tab.count}
+                  showZero
+                  size="small"
+                  color={tab.key === activeTab ? '#714B67' : '#dee2e6'}
+                  style={{ fontSize: 11 }}
+                />
+              </span>
+            ),
+          }))}
+        />
+      </div>
+
+      {/* ── Table ── */}
+      <div style={{ padding: '0 24px 24px' }}>
+        <Table
+          columns={columns}
+          dataSource={data}
+          rowKey="id"
+          loading={isLoading}
+          rowSelection={{
+            selectedRowKeys,
+            onChange: setSelectedRowKeys,
+          }}
+          pagination={{
+            current: meta.page,
+            pageSize: meta.limit,
+            total: meta.total,
+            showTotal: (total, range) => `${range[0]}-${range[1]} / ${total} đơn hàng`,
+            showSizeChanger: true,
+            pageSizeOptions: ['10', '20', '50', '100'],
+            style: { padding: '12px 0', margin: 0 },
+            onChange: (page) => fetchOrders(page),
+          }}
+          scroll={{ x: 1200 }}
+          size="middle"
+          style={{ background: '#fff', borderRadius: '0 0 8px 8px' }}
+          locale={{
+            emptyText: (
+              <Empty
+                image={
+                  <div style={{ padding: 24 }}>
+                    <Package size={64} strokeWidth={1} style={{ color: '#dee2e6' }} />
+                  </div>
+                }
+                description={
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 8, color: '#495057' }}>
+                      Chưa có đơn hàng nào
+                    </div>
+                    <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+                      Tạo đơn hàng đầu tiên để bắt đầu gửi hàng
+                    </Text>
+                    <Button type="primary" icon={<Plus size={14} />}>
+                      Tạo đơn hàng
+                    </Button>
+                  </div>
+                }
+              />
+            ),
+          }}
+        />
+      </div>
+
+      {/* ── Bulk Action Bar ── */}
+      {selectedRowKeys.length > 0 && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#714B67',
+            borderRadius: 10,
+            boxShadow: '0 8px 24px rgba(113,75,103,0.3)',
+            padding: '8px 24px',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            color: '#fff',
+          }}
+        >
+          <Text style={{ fontSize: 13, color: '#fff' }}>
+            Đã chọn <strong>{selectedRowKeys.length}</strong> đơn
+          </Text>
+          <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.2)' }} />
+          <Button size="small" ghost icon={<Printer size={14} />}>In nhãn</Button>
+          <Button size="small" ghost icon={<Download size={14} />}>Xuất Excel</Button>
+          <Button size="small" ghost danger icon={<CircleX size={14} />}>Hủy đơn</Button>
+          <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.2)' }} />
+          <Button type="text" size="small" icon={<X size={14} />} style={{ color: 'rgba(255,255,255,0.7)' }} onClick={() => setSelectedRowKeys([])}>
+            Bỏ chọn
+          </Button>
+        </div>
       )}
     </div>
   );

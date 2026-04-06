@@ -1,23 +1,20 @@
 'use client';
 
-import { Layout, Input, Badge, Avatar, Dropdown, Space, Button, Tooltip } from 'antd';
+import { Input, Badge, Avatar, Dropdown, Button, Space } from 'antd';
 import type { MenuProps } from 'antd';
 import {
   Search, Bell, Globe, User, Settings,
-  LogOut, Menu as MenuIcon, Sun, Moon,
+  LogOut, ChevronRight,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-const { Header } = Layout;
-
 interface AdminHeaderProps {
-  collapsed: boolean;
-  onToggleCollapse: () => void;
   locale: string;
+  breadcrumb: string;
   onLocaleChange: (locale: string) => void;
 }
 
-export function AdminHeader({ collapsed, onToggleCollapse, locale, onLocaleChange }: AdminHeaderProps) {
+export function AdminHeader({ locale, breadcrumb, onLocaleChange }: AdminHeaderProps) {
   const router = useRouter();
 
   const userMenuItems: MenuProps['items'] = [
@@ -31,16 +28,8 @@ export function AdminHeader({ collapsed, onToggleCollapse, locale, onLocaleChang
       icon: <Globe size={14} />,
       label: 'Ngôn ngữ',
       children: [
-        {
-          key: 'vi',
-          label: 'Tiếng Việt',
-          onClick: () => onLocaleChange('vi'),
-        },
-        {
-          key: 'en',
-          label: 'English',
-          onClick: () => onLocaleChange('en'),
-        },
+        { key: 'vi', label: 'Tiếng Việt', onClick: () => onLocaleChange('vi') },
+        { key: 'en', label: 'English',     onClick: () => onLocaleChange('en') },
       ],
     },
     {
@@ -58,87 +47,95 @@ export function AdminHeader({ collapsed, onToggleCollapse, locale, onLocaleChang
   ];
 
   return (
-    <Header
+    <header
       style={{
-        background: '#fff',
-        padding: '0 24px',
+        background: '#714B67',
+        height: 46,
         display: 'flex',
         alignItems: 'center',
+        padding: '0 20px',
         gap: 16,
-        height: 56,
-        borderBottom: '1px solid #f0f0f0',
         position: 'sticky',
         top: 0,
         zIndex: 100,
       }}
     >
-      {/* Sidebar toggle */}
-      <Button
-        type="text"
-        icon={<MenuIcon size={18} />}
-        onClick={onToggleCollapse}
-        style={{ color: '#595959' }}
-      />
+      {/* Breadcrumb */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span
+          style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, cursor: 'pointer' }}
+          onClick={() => router.push(`/${locale}`)}
+        >
+          VTTM
+        </span>
+        <ChevronRight size={12} style={{ color: 'rgba(255,255,255,0.4)' }} />
+        <span style={{ color: '#fff', fontSize: 13, fontWeight: 500 }}>
+          {breadcrumb}
+        </span>
+      </div>
 
-      {/* Global search */}
+      {/* Spacer */}
+      <div style={{ flex: 1 }} />
+
+      {/* Search */}
       <Input
-        prefix={<Search size={14} style={{ color: '#bfbfbf' }} />}
-        placeholder="Tìm đơn hàng, vận đơn, mã vận đơn..."
+        prefix={<Search size={14} style={{ color: 'rgba(255,255,255,0.5)' }} />}
+        placeholder="Tìm kiếm..."
         style={{
-          maxWidth: 400,
-          borderRadius: 8,
-          background: '#f5f5f5',
+          maxWidth: 280,
+          borderRadius: 20,
+          background: 'rgba(255,255,255,0.15)',
           border: 'none',
+          color: '#fff',
+        }}
+        styles={{
+          input: { color: '#fff', background: 'transparent' },
         }}
         suffix={
           <kbd style={{
-            fontSize: 11,
-            padding: '1px 6px',
-            borderRadius: 4,
-            background: '#e8e8e8',
-            color: '#8c8c8c',
-            border: '1px solid #d9d9d9',
+            fontSize: 10,
+            padding: '1px 5px',
+            borderRadius: 3,
+            background: 'rgba(255,255,255,0.15)',
+            color: 'rgba(255,255,255,0.6)',
+            border: '1px solid rgba(255,255,255,0.2)',
           }}>
             Ctrl+K
           </kbd>
         }
       />
 
-      {/* Spacer */}
-      <div style={{ flex: 1 }} />
+      {/* Right actions */}
+      <Space size={4}>
+        <Badge count={3} size="small" offset={[-2, 2]}>
+          <Button
+            type="text"
+            icon={<Bell size={18} />}
+            style={{ color: 'rgba(255,255,255,0.85)' }}
+          />
+        </Badge>
 
-      {/* Right section */}
-      <Space size={8}>
-        {/* Notifications */}
-        <Tooltip title="Thông báo">
-          <Badge count={3} size="small">
-            <Button
-              type="text"
-              icon={<Bell size={18} />}
-              style={{ color: '#595959' }}
-            />
-          </Badge>
-        </Tooltip>
-
-        {/* User dropdown */}
         <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="bottomRight">
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            cursor: 'pointer',
-            padding: '4px 8px',
-            borderRadius: 8,
-            transition: 'background 0.2s',
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
-          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              cursor: 'pointer',
+              padding: '4px 8px',
+              borderRadius: 6,
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
           >
-            <Avatar size={30} style={{ background: '#1677ff', fontSize: 12 }}>A</Avatar>
-            <span style={{ fontSize: 13, color: '#262626', fontWeight: 500 }}>Admin</span>
+            <Avatar size={26} style={{ background: 'rgba(255,255,255,0.25)', color: '#fff', fontSize: 11 }}>
+              A
+            </Avatar>
+            <span style={{ fontSize: 13, color: '#fff', fontWeight: 500 }}>Admin</span>
           </div>
         </Dropdown>
       </Space>
-    </Header>
+    </header>
   );
 }
